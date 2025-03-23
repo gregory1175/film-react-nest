@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FilmEntity } from 'src/films/entities/film.entity';
+import { FilmEntity } from '../../../src/films/entities/film.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()

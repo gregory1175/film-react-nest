@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { FilmsMongoDBRepository } from '../repository/films.repository/filmsMongoDB..repository';
-import { FilmsPostgreSqlService } from 'src/repository/films.repository/filmsPostgreSql.service';
+import { FilmsPostgreSqlService } from '../../src/repository/films.repository/filmsPostgreSql.service';
 
 @Injectable()
 export class FilmsService {
