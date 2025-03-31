@@ -37,8 +37,8 @@ export class OrderService {
     const takenPlaces = `schedule.${scheduleIndex.toString()}.taken`;
     try {
       await film.updateOne({ $push: { [takenPlaces]: place } });
-    } catch (error) {
-      new ConflictException('Ошибка сохранения мест');
+    } catch {
+      throw new ConflictException('Ошибка сохранения мест');
     }
   }
 }
