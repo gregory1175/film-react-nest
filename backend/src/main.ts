@@ -5,15 +5,29 @@ import { TskvLogger } from './loggers/tskv.loggers';
 import { DevLogger } from './loggers/dev.loggers';
 import { JsonLogger } from './loggers/json.logger';
 
+const massLoggers = {
+  TskvLogger,
+  DevLogger,
+  JsonLogger,
+};
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
   });
   app.setGlobalPrefix('api/afisha');
   app.enableCors();
-  app.useLogger(new DevLogger());
-  app.useLogger(new JsonLogger());
-  app.useLogger(new TskvLogger());
+  const selectedLogger = process.env.LOGGER || 'JsonLogger';
+  const LoggerClass = massLoggers[selectedLogger];
+  if (!LoggerClass) {
+    console.error(
+      `Logger ${selectedLogger} not found, falling back to default (JsonLogger)`,
+    );
+    app.useLogger(new JsonLogger());
+  } else {
+    app.useLogger(new LoggerClass());
+  }
+
   await app.listen(3000);
 }
 bootstrap();
