@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import 'dotenv/config';
-import { TskvLogger } from './loggers/tskv.loggers';
-import { DevLogger } from './loggers/dev.loggers';
+import { TskvLogger } from './loggers/tskv.logger';
+import { DevLogger } from './loggers/dev.logger';
 import { JsonLogger } from './loggers/json.logger';
 
 const massLoggers = {
