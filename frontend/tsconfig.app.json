@@ -23,5 +23,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
+  "exclude": ["**/*.stories.ts", "**/*.stories.tsx", "node_modules"],
   "include": ["src"]
 }
