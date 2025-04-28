@@ -1,12 +1,13 @@
 import {
-  BadRequestException,
   Injectable,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FilmEntity } from '../../../src/films/entities/film.entity';
+
 import { Repository } from 'typeorm';
 
+import { FilmEntity } from '../films/entities/film.entity';
 @Injectable()
 export class FilmsPostgreSqlService {
   constructor(
@@ -28,22 +29,39 @@ export class FilmsPostgreSqlService {
         where: { id },
         relations: { schedule: true },
       });
-    } catch {
-      throw new NotFoundException(`Фильм не найден`);
+    } catch (error) {
+      throw new NotFoundException(`Фильм с таким Id ${id} не найден`);
     }
   }
 
-  async findFilmSchedule(filmId: string, session: string) {
+  async findScheduleIndexInFilm(filmId: string, session: string) {
     const film = await this.findFilmById(filmId);
     const scheduleIndex = film.schedule.findIndex((s) => s.id === session);
+    if (scheduleIndex === -1) {
+      throw new NotFoundException(
+        `Такого расписания нет для фильма '${film.title}'`,
+      );
+    }
     return scheduleIndex;
+  }
+
+  async createNewFilm(film: FilmEntity): Promise<FilmEntity> {
+    const films = await this.filmRepository.find({
+      relations: { schedule: true },
+    });
+    if (films.find((f) => f.title === film.title)) {
+      throw new BadRequestException(
+        `Фильм с таким названием  '${film.title}' уже существует`,
+      );
+    }
+    return this.filmRepository.save(film);
   }
 
   async updateFilm(film: FilmEntity): Promise<void> {
     try {
       await this.filmRepository.save(film);
-    } catch {
-      new BadRequestException(`Не удалось обновить фильм`);
+    } catch (error) {
+      new BadRequestException(`Не удалось обновить фильм ${film.title}`);
     }
   }
 }

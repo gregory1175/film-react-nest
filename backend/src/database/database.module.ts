@@ -5,8 +5,8 @@ import { applicationConfig } from 'src/app.config.provider';
 import { FilmEntity } from '../../src/films/entities/film.entity';
 import { ScheduleEntity } from '../../src/films/entities/schedule.entity';
 import { Film, FilmSchema } from '../../src/films/schemas/film.schema';
-import { FilmsMongoDBRepository } from '../../src/repository/films.repository/filmsMongoDB..repository';
-import { FilmsPostgreSqlService } from '../../src/repository/films.repository/filmsPostgreSql.service';
+import { FilmsMongoDBRepository } from '../../src/repository/filmsMongoDB.repository';
+import { FilmsPostgreSqlService } from '../../src/repository/filmsPostgreSql.service';
 
 @Module({})
 export class DatabaseModule {

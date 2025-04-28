@@ -1,14 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { GetFilmDto } from '../../films/dto/films.dto';
-import { Film, FilmDocument } from '../../films/schemas/film.schema';
+import { v4 as uuidv4 } from 'uuid';
+import { CreateFilmDto, GetFilmDto } from '../films/dto/films.dto';
+import { Film, FilmDocument } from '../films/schemas/film.schema';
 
 @Injectable()
 export class FilmsMongoDBRepository {
   constructor(@InjectModel(Film.name) private filmModel: Model<Film>) {}
 
-  private getFilmFromDataBase(): (filmDataBase: GetFilmDto) => GetFilmDto {
+  private getFilmFromDataBaseFn(): (filmDataBase: GetFilmDto) => GetFilmDto {
     return (root) => {
       return {
         id: root.id,
@@ -30,7 +35,18 @@ export class FilmsMongoDBRepository {
     const total = await this.filmModel.countDocuments({});
     return {
       total,
-      items: films.map(this.getFilmFromDataBase()),
+      items: films.map((film) => ({
+        id: film.id,
+        rating: film.rating,
+        director: film.director,
+        tags: film.tags,
+        image: film.image,
+        cover: film.cover,
+        title: film.title,
+        about: film.about,
+        description: film.description,
+        schedule: film.schedule,
+      })),
     };
   }
 
@@ -47,5 +63,17 @@ export class FilmsMongoDBRepository {
     const film = (await this.findFilmById(filmId)).toObject();
     const scheduleIndex = film.schedule.findIndex((s) => s.id === session);
     return scheduleIndex;
+  }
+
+  async createNewFilm(film: CreateFilmDto): Promise<Film> {
+    const films = await this.filmModel.find({});
+    if (films.find((f) => f.title === film.title)) {
+      throw new BadRequestException(
+        `Фильм с таким названием  '${film.title}' уже существует`,
+      );
+    }
+    const newFilm = new this.filmModel({ ...film, id: uuidv4() });
+    const createdFilm = await newFilm.save();
+    return this.getFilmFromDataBaseFn()(createdFilm);
   }
 }

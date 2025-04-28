@@ -1,3 +1,4 @@
+//TODO реализовать DTO для /orders
 import {
   IsArray,
   IsEmail,
@@ -12,7 +13,7 @@ export class CreateOrderDto {
   seats: string;
 }
 
-export class TicketDTO {
+export class TicketDto {
   @IsString()
   film: string;
   @IsString()
@@ -37,5 +38,5 @@ export class OrderDataDto {
   @IsMobilePhone()
   phone: string;
   @IsArray()
-  tickets: TicketDTO[];
+  tickets: TicketDto[];
 }

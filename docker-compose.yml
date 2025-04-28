@@ -1,79 +1,77 @@
 services:
-  database:
-    image: postgres:16.4
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-    ports:
-      - "5432:5432"
+  backend:
+    image: ghcr.io/gregory1175/film-react-nest/backend:latest
+    container_name: backend
+    depends_on:
+      - postgres
     networks:
-      - internet
+      - postgres_network
+    env_file:
+      - backend/.env
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/gregory1175/film-react-nest/frontend:latest
+    container_name: frontend
+    networks:
+      - postgres_network
+    volumes:
+      - frontend_dist:/app/dist
+    env_file:
+      - frontend/.env
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    networks:
+      - postgres_network
+    env_file:
+      - /.env
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
 
   pgadmin:
     image: dpage/pgadmin4
-    container_name: pgadmin4_container
-    restart: always
-    ports:
-      - "8000:80"
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
+    container_name: pgadmin
     networks:
-      - internet
-
-  frontend:
-    image: "ghcr.io/${OWNER}/sp16_frontend:latest"
-    build:
-      context: frontend
-    environment:
-      VITE_BAE_URL: /
-      VITE_API_URL: /api/afisha
-      VITE_CDN_URL: /content/afisha
+      - postgres_network
+    env_file:
+      - /.env
     volumes:
-      - frontend_build:/app/dist
-
-  backend:
-    image: "ghcr.io/${OWNER}/sp16_backend:latest"
-    build:
-      context: backend
-    environment:
-      PORT: 3000
-      DEBUG: "*"
-      DATABASE_DRIVER: "postgres"
-      DATABASE_URL: "postgres://database:5432/${DB_NAME}"
-      DATABASE_USERNAME: ${DB_USER}
-      DATABASE_PASSWORD: ${DB_PASSWORD}
+      - pgadmin-data:/var/lib/pgadmin/data
     ports:
-      - 3000:3000
-    networks:
-      - internet
+      - 8080:80
     depends_on:
-      - database
+      - postgres
+    restart: unless-stopped
 
-  server:
-    image: "ghcr.io/${OWNER}/sp16_server:latest"
-    build:
-      context: nginx
+  nginx:
+    image: nginx
     ports:
       - 80:80
-    volumes:
-      - frontend_build:/var/www
-    depends_on:
-      - frontend
-      - backend
+      - 443:443
     networks:
-      - internet
+      - postgres_network
+    restart: always
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certbot/www/:/var/www/certbot/:ro
+      - ./certbot/conf/:/etc/letsencrypt/:ro
+      - frontend_dist:/var/www/frontend:ro
 
-volumes:
-  db_data:
-  pgadmin-data:
-  frontend_build:
+  certbot:
+    image: certbot/certbot:latest
+    networks:
+      - postgres_network
+    volumes:
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf/:/etc/letsencrypt/:rw
 
 networks:
-  internet:
+  postgres_network:
+
+volumes:
+  postgres-data:
+  pgadmin-data:
+  frontend_dist:

@@ -1,3 +1,4 @@
+import { IsString, IsNumber, IsFQDN, IsNotEmpty } from 'class-validator';
 export class GetScheduleDTO {
   id: string;
   daytime: string;
@@ -24,4 +25,24 @@ export class GetFilmDto {
 export class GetFilmsDto {
   total: number;
   items: GetFilmDto[];
+}
+
+export class CreateFilmDto {
+  @IsNumber()
+  rating: number;
+  @IsString()
+  director: string;
+  tags: string[];
+  @IsFQDN()
+  image: string;
+  @IsFQDN()
+  cover: string;
+  @IsString()
+  title: string;
+  @IsString()
+  about: string;
+  @IsString()
+  description: string;
+  @IsNotEmpty()
+  schedule: GetScheduleDTO[];
 }
