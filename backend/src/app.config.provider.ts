@@ -8,7 +8,7 @@ export const configProvider = {
   useValue: {
     database: {
       driver: process.env.DATABASE_DRIVER || 'mongodb',
-      url: process.env.DATABASE_URL || 'mongodb://localhost:27017/practicum',
+      url: process.env.DATABASE_URL || 'mongodb://localhost:27017/prac',
     },
   },
 };
