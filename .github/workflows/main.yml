@@ -1,53 +1,37 @@
-name: Docker Image CI
+name: Create and publish a Docker image
 
-on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
+env:
+  REGISTRY: ghcr.io
+
+on: [push]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: write
-    steps:
-      - name: set lower case owner name
-        run: /
-          echo "REPO=${OWNER,,}" >>${GITHUB_ENV}
-        env:
-          OWNER: "${{ github.repository_owner}}"
-
-      - run: /
-          echo "repo ${REPO}"
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker QEMU
-        uses: docker/setup-buildx-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          registery: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push backend
-        uses: docker/buildpush-action@v6
-        with:
-          context: "{{defaultContext}}:backend"
-          push: true
-          tags: "grhcr.io/${{ env.REPO }}/sp16_frontend:latest"
-
-      - name: Build and push server
-        uses: docker/buils-pushaction@v6
-        with:
-          context: "{{defaultContext}}:nginx"
-          push: true
-          tags: "ghcr.io/${{ env.REPO }}/sp16_server:latest"
+    build-and-publish-latest:
+            runs-on: ubuntu-latest
+            steps:
+                - name: Checking out the repo
+                  uses: actions/checkout@v4
+                - name: Log in to the Container registry
+                  uses: docker/login-action@v3
+                  with:
+                    registry: ${{ env.REGISTRY }}
+                    username: ${{ github.actor }}
+                    password: ${{ secrets.ALEXSECRET }}
+                - name: Setup Buildx
+                  uses: docker/setup-buildx-action@v3
+                    
+                - name: Build and push Backend Docker image
+                  uses: docker/build-push-action@v3
+                  with:
+                    context: ./backend
+                    file: ./backend/Dockerfile
+                    push: true
+                    tags: ${{ env.REGISTRY }}/gregory1175/film-react-nest/backend:latest
+                
+                - name: Build and push Front Docker image
+                  uses: docker/build-push-action@v3
+                  with:
+                    context: ./frontend
+                    file: ./frontend/Dockerfile
+                    push: true
+                    tags: ${{ env.REGISTRY }}/gregory1175/film-react-nest/frontend:latest
